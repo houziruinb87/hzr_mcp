@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "local-stdio-hzr": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "hzr_mcp"]
+    }
+  }
+}
