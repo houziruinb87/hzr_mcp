@@ -4,3 +4,4 @@ node_modules/
 .env
 deploy.config
 *.pyc
+airproce_last_run.log

@@ -76,10 +76,14 @@ def adb_connect(device_ip: str, port: str = ANDROID_ADB_PORT) -> dict:
         return {"success": False, "message": str(e), "device": device}
 
 
+# 新风机脚本后台执行时的日志文件（便于排查，不阻塞 MCP 响应）
+AIRPROCE_LOG = os.path.join(_SCRIPT_DIR, "airproce_last_run.log")
+
+
 @mcp.tool()
 def airproce_control(device_ip: str | None = None, port: str | None = None) -> dict:
     """当用户说「开启新风机」「关闭新风机」「启动新风机」「停止新风机」时调用此工具。
-    通过 adb 执行 airproce 脚本：连接 Android 设备、启动 Airproce App、依次点击进入并触发新风机开关（开启/关闭为同一套点击流程）。
+    通过 adb 在后台执行 airproce 脚本（连接设备、启动 Airproce、点击开关）；为避免小智 MCP 接入点超时，本工具立即返回，脚本在服务器后台继续执行。
     device_ip: 可选，手机 IP，不传则使用环境变量 ADB_DEVICE_IP 或脚本默认；port: 可选，默认 5555。"""
     if not os.path.isfile(AIRPROCE_SCRIPT):
         return {"success": False, "message": f"未找到脚本: {AIRPROCE_SCRIPT}"}
@@ -89,45 +93,27 @@ def airproce_control(device_ip: str | None = None, port: str | None = None) -> d
         if (port or "").strip():
             cmd.append((port or "").strip())
     try:
-        logger.info("airproce_control: running %s", cmd)
-        out = subprocess.run(
+        # 后台执行，不等待，避免小智云端等 MCP 响应时超时（脚本需几十秒）
+        log_file = open(AIRPROCE_LOG, "w", encoding="utf-8")
+        log_file.write("=== airproce_control 后台执行 %s\n\n" % " ".join(cmd))
+        log_file.flush()
+        proc = subprocess.Popen(
             cmd,
             cwd=_SCRIPT_DIR,
-            capture_output=True,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
             text=True,
-            timeout=120,
         )
-        out_text = (out.stdout or "").strip()
-        if (out.stderr or "").strip():
-            out_text = out_text + "\n" + (out.stderr or "").strip()
-        if not out_text:
-            out_text = "脚本无输出，returncode=%s" % out.returncode
-
-        logger.info("airproce_control: returncode=%s, output length=%s", out.returncode, len(out_text))
-        if out.returncode != 0:
-            logger.warning("airproce_control failed returncode=%s, first 500 chars: %s", out.returncode, out_text[:500])
-
-        # 失败时在开头加一句简要说明，方便小智直接读出原因
-        if out.returncode != 0:
-            hint = {
-                1: "adb connect 未成功（请检查手机同网、无线调试/授权）。",
-                2: "启动 Airproce App 未成功（可能未安装或包名/Activity 不符）。",
-            }.get(out.returncode, "脚本某步执行失败。")
-            out_text = "[新风机控制失败] returncode=%s，可能原因：%s\n\n--- 脚本输出（步骤摘要）---\n%s" % (
-                out.returncode, hint, out_text
-            )
-
+        log_file.close()
+        logger.info("airproce_control: started background pid=%s, log=%s", proc.pid, AIRPROCE_LOG)
         return {
-            "success": out.returncode == 0,
-            "message": out_text,
-            "returncode": out.returncode,
+            "success": True,
+            "message": "已提交新风机控制，正在后台执行，请稍候在手机上确认（连接、启动 Airproce、点击开关）。若需查看执行详情可到服务器查看日志：%s" % AIRPROCE_LOG,
+            "returncode": None,
         }
-    except subprocess.TimeoutExpired:
-        logger.warning("airproce_control: timeout 120s")
-        return {"success": False, "message": "[新风机控制失败] 执行超时（120s），请检查设备与网络。", "returncode": -1}
     except Exception as e:
         logger.exception("airproce_control failed")
-        return {"success": False, "message": "[新风机控制失败] 异常: " + str(e), "returncode": -1}
+        return {"success": False, "message": "[新风机控制失败] 启动后台任务异常: " + str(e), "returncode": -1}
 
 
 if __name__ == "__main__":
