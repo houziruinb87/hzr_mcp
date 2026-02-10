@@ -2,8 +2,13 @@
 # 代码不打包进镜像，由挂载的 git 仓库提供；每次启动时 entrypoint 会拉取最新代码再启动
 FROM python:3.12-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends git \
+# 安装 git 与 OpenJDK 17（adb/部分 Android 工具可能依赖 Java；与 office 容器一致）
+RUN apt-get update && apt-get install -y --no-install-recommends git openjdk-17-jdk-headless \
     && rm -rf /var/lib/apt/lists/*
+
+# Java 环境变量（amd64 路径；若 NAS 为 arm64 可在 compose 中覆盖 JAVA_HOME 为 java-17-openjdk-arm64）
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 WORKDIR /app
 

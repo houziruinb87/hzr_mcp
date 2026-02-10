@@ -2,15 +2,17 @@
 # 复制到「mcp」目录并改名为 docker-compose.yml，不要放在 hzr_mcp 子目录里。
 #
 # 目录结构示例：
-#   mcp/
-#     hzr_mcp/          <- git clone 的仓库
-#     docker-compose.yml   <- 由本文件复制而来
+#   docker/mcp/
+#     hzr_mcp/            <- git clone 的仓库
+#     docker-compose.yml  <- 由本文件复制而来
 #     .env
 #
 # 用法（在 mcp 目录下执行）：
 #   cp hzr_mcp/docker-compose.parent-dir.example.yml docker-compose.yml
 #   cp hzr_mcp/.env.example .env   # 编辑 .env 填 MCP_BASE_URL、MCP_TOKEN
 #   docker compose up -d
+#
+# adb：挂载同机 office 的 tools（.../docker/office/tools），容器内用 ADB_PATH 指向 adb。
 
 services:
   hzr_mcp:
@@ -23,5 +25,9 @@ services:
     env_file: .env
     volumes:
       - ./hzr_mcp:/app
-    # environment:
+      - /data_n003/data/udata/real/18510411307/docker/office/tools:/workspace/tools:ro
+    environment:
+      ADB_PATH: /workspace/tools/android-sdk/platform-tools/adb
+      # 镜像内已装 OpenJDK 17 并设 JAVA_HOME；若 NAS 为 arm64 可覆盖：
+      # JAVA_HOME: /usr/lib/jvm/java-17-openjdk-arm64
     #   GIT_BRANCH: main

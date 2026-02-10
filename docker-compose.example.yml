@@ -11,6 +11,9 @@
 #        docker compose up -d
 #
 # 注意：当前目录会被挂载到容器的 /app，必须是 git 仓库，启动时会执行 git fetch + reset --hard origin/main
+#
+# adb：与 NAS 上 office 同机时挂载 office 的 tools（tools 下有 android-sdk、env.sh 等），
+#       容器内 ADB_PATH 指向 /workspace/tools/android-sdk/platform-tools/adb。
 
 services:
   hzr_mcp:
@@ -22,8 +25,12 @@ services:
     # 代码目录：当前目录（即 NAS 上 clone 的 hzr_mcp 工程）挂载到 /app，每次启动拉取最新后再跑
     volumes:
       - .:/app
+      # 挂载 office 的 tools（.../docker/office/tools → 内有 android-sdk、env.sh 等）
+      - /data_n003/data/udata/real/18510411307/docker/office/tools:/workspace/tools:ro
+    environment:
+      ADB_PATH: /workspace/tools/android-sdk/platform-tools/adb
+      # 镜像内已装 OpenJDK 17；arm64 可覆盖 JAVA_HOME: /usr/lib/jvm/java-17-openjdk-arm64
     # 可选：指定拉取分支（默认 main）
-    # environment:
     #   GIT_BRANCH: main
     # 若需覆盖 name_to_ip.json 等，可追加挂载：
     #   - /path/to/name_to_ip.json:/app/name_to_ip.json:ro
