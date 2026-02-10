@@ -15,6 +15,10 @@ if sys.platform == "win32":
 ADB_CMD = os.environ.get("ADB_PATH", "adb")
 ANDROID_ADB_PORT = os.environ.get("ANDROID_ADB_PORT", "5555")
 
+# airproce 脚本路径（与 hzr_mcp.py 同目录下的 airproce/ensure_connect_and_select.py）
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+AIRPROCE_SCRIPT = os.path.join(_SCRIPT_DIR, "airproce", "ensure_connect_and_select.py")
+
 mcp = FastMCP("hzr")
 
 
@@ -70,6 +74,39 @@ def adb_connect(device_ip: str, port: str = ANDROID_ADB_PORT) -> dict:
     except Exception as e:
         logger.exception("adb connect failed")
         return {"success": False, "message": str(e), "device": device}
+
+
+@mcp.tool()
+def airproce_control(device_ip: str | None = None, port: str | None = None) -> dict:
+    """当用户说「开启新风机」「关闭新风机」「启动新风机」「停止新风机」时调用此工具。
+    通过 adb 执行 airproce 脚本：连接 Android 设备、启动 Airproce App、依次点击进入并触发新风机开关（开启/关闭为同一套点击流程）。
+    device_ip: 可选，手机 IP，不传则使用环境变量 ADB_DEVICE_IP 或脚本默认；port: 可选，默认 5555。"""
+    if not os.path.isfile(AIRPROCE_SCRIPT):
+        return {"success": False, "message": f"未找到脚本: {AIRPROCE_SCRIPT}"}
+    cmd = [sys.executable, AIRPROCE_SCRIPT]
+    if (device_ip or "").strip():
+        cmd.append((device_ip or "").strip())
+        if (port or "").strip():
+            cmd.append((port or "").strip())
+    try:
+        out = subprocess.run(
+            cmd,
+            cwd=_SCRIPT_DIR,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        out_text = (out.stdout or "").strip() + "\n" + (out.stderr or "").strip()
+        return {
+            "success": out.returncode == 0,
+            "message": out_text or ("脚本已执行，returncode=%s" % out.returncode),
+            "returncode": out.returncode,
+        }
+    except subprocess.TimeoutExpired:
+        return {"success": False, "message": "执行超时（120s）", "returncode": -1}
+    except Exception as e:
+        logger.exception("airproce_control failed")
+        return {"success": False, "message": str(e), "returncode": -1}
 
 
 if __name__ == "__main__":
