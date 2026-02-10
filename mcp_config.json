@@ -3,7 +3,12 @@
     "local-stdio-hzr": {
       "type": "stdio",
       "command": "python",
-      "args": ["-m", "hzr_mcp"]
+      "args": ["hzr_mcp.py"]
+    },
+    "hzr_mcp": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["hzr_mcp.py"]
     }
   }
 }

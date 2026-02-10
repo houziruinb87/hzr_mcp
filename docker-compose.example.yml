@@ -1,0 +1,29 @@
+# hzr_mcp：小智 MCP 长连接专用容器
+# 代码来自 NAS 上 clone 的 GitLab 工程，每次容器启动/重启都会放弃本地改动并拉取最新代码后再启动长连接。
+#
+# 用法：
+#   1. 在 NAS 上 clone 工程（若尚未 clone）：
+#        git clone <你的 NAS GitLab hzr_mcp 地址> /path/to/data/hzr_mcp
+#   2. 复制本文件并配置：
+#        cp docker-compose.example.yml docker-compose.yml
+#        cp .env.example .env   # 编辑 .env：MCP_BASE_URL、MCP_TOKEN
+#   3. 在 clone 出来的目录（即与 docker-compose.yml 同目录）执行：
+#        docker compose up -d
+#
+# 注意：当前目录会被挂载到容器的 /app，必须是 git 仓库，启动时会执行 git fetch + reset --hard origin/main
+
+services:
+  hzr_mcp:
+    build: .
+    image: hzr_mcp:latest
+    container_name: hzr_mcp
+    restart: unless-stopped
+    env_file: .env
+    # 代码目录：当前目录（即 NAS 上 clone 的 hzr_mcp 工程）挂载到 /app，每次启动拉取最新后再跑
+    volumes:
+      - .:/app
+    # 可选：指定拉取分支（默认 main）
+    # environment:
+    #   GIT_BRANCH: main
+    # 若需覆盖 name_to_ip.json 等，可追加挂载：
+    #   - /path/to/name_to_ip.json:/app/name_to_ip.json:ro
