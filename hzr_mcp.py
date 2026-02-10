@@ -89,6 +89,7 @@ def airproce_control(device_ip: str | None = None, port: str | None = None) -> d
         if (port or "").strip():
             cmd.append((port or "").strip())
     try:
+        logger.info("airproce_control: running %s", cmd)
         out = subprocess.run(
             cmd,
             cwd=_SCRIPT_DIR,
@@ -96,17 +97,37 @@ def airproce_control(device_ip: str | None = None, port: str | None = None) -> d
             text=True,
             timeout=120,
         )
-        out_text = (out.stdout or "").strip() + "\n" + (out.stderr or "").strip()
+        out_text = (out.stdout or "").strip()
+        if (out.stderr or "").strip():
+            out_text = out_text + "\n" + (out.stderr or "").strip()
+        if not out_text:
+            out_text = "脚本无输出，returncode=%s" % out.returncode
+
+        logger.info("airproce_control: returncode=%s, output length=%s", out.returncode, len(out_text))
+        if out.returncode != 0:
+            logger.warning("airproce_control failed returncode=%s, first 500 chars: %s", out.returncode, out_text[:500])
+
+        # 失败时在开头加一句简要说明，方便小智直接读出原因
+        if out.returncode != 0:
+            hint = {
+                1: "adb connect 未成功（请检查手机同网、无线调试/授权）。",
+                2: "启动 Airproce App 未成功（可能未安装或包名/Activity 不符）。",
+            }.get(out.returncode, "脚本某步执行失败。")
+            out_text = "[新风机控制失败] returncode=%s，可能原因：%s\n\n--- 脚本输出（步骤摘要）---\n%s" % (
+                out.returncode, hint, out_text
+            )
+
         return {
             "success": out.returncode == 0,
-            "message": out_text or ("脚本已执行，returncode=%s" % out.returncode),
+            "message": out_text,
             "returncode": out.returncode,
         }
     except subprocess.TimeoutExpired:
-        return {"success": False, "message": "执行超时（120s）", "returncode": -1}
+        logger.warning("airproce_control: timeout 120s")
+        return {"success": False, "message": "[新风机控制失败] 执行超时（120s），请检查设备与网络。", "returncode": -1}
     except Exception as e:
         logger.exception("airproce_control failed")
-        return {"success": False, "message": str(e), "returncode": -1}
+        return {"success": False, "message": "[新风机控制失败] 异常: " + str(e), "returncode": -1}
 
 
 if __name__ == "__main__":
