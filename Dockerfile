@@ -2,10 +2,11 @@
 # 代码不打包进镜像，由挂载的 git 仓库提供；每次启动时 entrypoint 会拉取最新代码再启动
 FROM python:3.12-slim
 
-# 安装 git 与 pip 编译用依赖（python-miio 依赖 netifaces 等需编译的包）
+# 安装 git、ssh（entrypoint 内 git fetch 用 GIT_SSH_COMMAND 需 ssh）、pip 编译用依赖（python-miio 依赖 netifaces 等）
 # 若需 JDK 可后续加 default-jdk-headless（Debian 版本不同包名可能为 openjdk-17 或 openjdk-21）
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
+    openssh-client \
     build-essential libpython3-dev \
     && rm -rf /var/lib/apt/lists/*
 
