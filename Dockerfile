@@ -2,15 +2,12 @@
 # 代码不打包进镜像，由挂载的 git 仓库提供；每次启动时 entrypoint 会拉取最新代码再启动
 FROM python:3.12-slim
 
-# 安装 git、OpenJDK 17、以及 pip 编译用依赖（python-miio 依赖 netifaces 等需编译的包）
+# 安装 git 与 pip 编译用依赖（python-miio 依赖 netifaces 等需编译的包）
+# 若需 JDK 可后续加 default-jdk-headless（Debian 版本不同包名可能为 openjdk-17 或 openjdk-21）
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git openjdk-17-jdk-headless \
+    git \
     build-essential libpython3-dev \
     && rm -rf /var/lib/apt/lists/*
-
-# Java 环境变量（amd64 路径；若 NAS 为 arm64 可在 compose 中覆盖 JAVA_HOME 为 java-17-openjdk-arm64）
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 WORKDIR /app
 
