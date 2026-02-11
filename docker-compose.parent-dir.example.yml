@@ -13,6 +13,8 @@
 #   docker compose up -d
 #
 # adb：挂载同机 office 的 tools（.../docker/office/tools），容器内用 ADB_PATH 指向 adb。
+# GitLab 在宿主机 127.0.0.1:2222 时，需 network_mode: host，否则容器内 127.0.0.1 连不到主机；
+# 同时挂载宿主机 .ssh 到 /root/.ssh:ro，供 entrypoint 内 git fetch 使用。
 
 services:
   hzr_mcp:
@@ -22,10 +24,13 @@ services:
     image: hzr_mcp:latest
     container_name: hzr_mcp
     restart: unless-stopped
+    network_mode: host
     env_file: .env
     volumes:
       - ./hzr_mcp:/app
       - /data_n003/data/udata/real/18510411307/docker/office/tools:/workspace/tools:ro
+      # 供容器内 git fetch（GitLab 在主机 127.0.0.1:2222），按实际 .ssh 路径修改：
+      # - /data_n003/data/udata/real/18510411307/.ssh:/root/.ssh:ro
     environment:
       ADB_PATH: /workspace/tools/android-sdk/platform-tools/adb
       # 镜像内已装 OpenJDK 17 并设 JAVA_HOME；若 NAS 为 arm64 可覆盖：

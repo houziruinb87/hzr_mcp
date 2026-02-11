@@ -18,9 +18,7 @@ if [ -d "$TOOLS_DIR" ]; then
     export PATH="$TOOLS_DIR/android-sdk/platform-tools:${PATH}"
     [ -d "$TOOLS_DIR/android-sdk/cmdline-tools/latest/bin" ] && export PATH="$TOOLS_DIR/android-sdk/cmdline-tools/latest/bin:${PATH}"
   fi
-  if [ -d "$TOOLS_DIR/venv/bin" ]; then
-    export PATH="$TOOLS_DIR/venv/bin:${PATH}"
-  fi
+  # venv 仅在下文校验可运行后再加入 PATH（宿主机创建的 venv 在容器内解释器路径可能不可用）
 fi
 
 if [ ! -d .git ]; then
@@ -59,9 +57,16 @@ echo "[entrypoint] 拉取最新代码: git fetch origin && git reset --hard orig
 git fetch origin
 git reset --hard "origin/${BRANCH}"
 
-# 若存在 tools/venv 则使用其 Python（与 NAS/office 同一环境），否则容器内安装依赖
+# 若 tools/venv 存在且其 python 在容器内可运行（同机 NAS 时成立；否则 venv 在别机创建、解释器路径可能不可用），则使用 venv 并跳过 pip
+USE_VENV=0
 if [ -d "$TOOLS_DIR/venv/bin" ]; then
+  if "$TOOLS_DIR/venv/bin/python" -c "import websockets" 2>/dev/null; then
+    USE_VENV=1
+  fi
+fi
+if [ "$USE_VENV" = 1 ]; then
   echo "[entrypoint] 使用 tools/venv，跳过 pip install"
+  export PATH="$TOOLS_DIR/venv/bin:${PATH}"
 else
   echo "[entrypoint] 安装依赖: pip install -r requirements.txt（国内镜像 + 长超时）"
   pip install --no-cache-dir -r requirements.txt \
