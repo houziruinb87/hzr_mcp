@@ -7,5 +7,5 @@ mcp>=1.20.0
 pydantic>=2.12.3
 # MCP 服务（hzr_mcp.py）：@mcp.tool 等
 fastmcp>=2.13.0.2
-# 小米/米家设备控制（xiaomi 目录脚本）：miiocli / python-miio
-python-miio>=0.6.0
+# 小米/米家设备控制（xiaomi 目录脚本）：miiocli / python-miio（0.6.0 正式版未上 PyPI/镜像，用 0.5.x 最新）
+python-miio>=0.5.12
