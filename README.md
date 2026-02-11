@@ -15,6 +15,23 @@ https://remote-access-8929.zconnect.cn/ai/hzr_mcp
 - Python 3.10+
 - 极空间 office 容器内已配置 Android SDK（`source /workspace/tools/env.sh` 或 `.bashrc` 已加载），`adb` 在 PATH 中
 
+## tools 统一环境（JAVA / ADB / Python venv）
+
+adb、Java 通过挂载 `office/tools` 使用；**Python 环境（含 python-miio）** 也可放在同一 `tools/` 下，使 **NAS 本机、office 容器、hzr_mcp 容器** 使用相同环境变量、指向同一目录。
+
+- **tools 目录结构示例**：`tools/jdk-17`、`tools/android-sdk`、`tools/venv`（Python venv，含 `requirements.txt` 依赖）。
+- **统一环境变量（一套放 office/tools）**：  
+  - `tools/env-common.sh`：JAVA、ANDROID_HOME、ADB_PATH、venv 的 PATH（与 entrypoint 同逻辑）。  
+  - `tools/env-host.sh`：供 NAS 本机 source，内部 source env-common.sh 并处理 adb 所需的 HOME。  
+  NAS 本机只 source `env-host.sh`；office 容器 source `env-common.sh`；hzr_mcp 容器由 entrypoint 应用相同逻辑。  
+  **上述两个脚本仅放在 NAS 的 `docker/office/tools/` 下维护，本仓库不包含。**
+- **一次性创建 tools/venv**（在 NAS 上）：  
+  `export TOOLS_DIR=/data_n003/data/udata/real/18510411307/docker/office/tools`  
+  `./scripts/install-venv-to-tools.sh`  
+  完成后 `tools/venv/bin` 下有 `python`、`miiocli` 等；hzr_mcp 容器若挂载该 tools，会优先使用此 venv。
+
+详见 `scripts/install-venv-to-tools.sh`。
+
 ## 快速开始
 
 1. 安装依赖：

@@ -5,6 +5,24 @@
 set -e
 cd /app
 
+# 与 NAS / office 一致：统一从挂载的 tools 读 JAVA、ADB、Python venv（与 tools/env-common.sh 同逻辑）
+TOOLS_DIR=/workspace/tools
+if [ -d "$TOOLS_DIR" ]; then
+  if [ -d "$TOOLS_DIR/jdk-17" ]; then
+    export JAVA_HOME="$TOOLS_DIR/jdk-17"
+    export PATH="${JAVA_HOME}/bin:${PATH}"
+  fi
+  if [ -d "$TOOLS_DIR/android-sdk" ]; then
+    export ANDROID_HOME="$TOOLS_DIR/android-sdk"
+    export ADB_PATH="$TOOLS_DIR/android-sdk/platform-tools/adb"
+    export PATH="$TOOLS_DIR/android-sdk/platform-tools:${PATH}"
+    [ -d "$TOOLS_DIR/android-sdk/cmdline-tools/latest/bin" ] && export PATH="$TOOLS_DIR/android-sdk/cmdline-tools/latest/bin:${PATH}"
+  fi
+  if [ -d "$TOOLS_DIR/venv/bin" ]; then
+    export PATH="$TOOLS_DIR/venv/bin:${PATH}"
+  fi
+fi
+
 if [ ! -d .git ]; then
   echo "错误: /app 下未发现 .git，请将宿主机上 clone 的 hzr_mcp 目录挂载到 /app" >&2
   exit 1
@@ -41,9 +59,14 @@ echo "[entrypoint] 拉取最新代码: git fetch origin && git reset --hard orig
 git fetch origin
 git reset --hard "origin/${BRANCH}"
 
-echo "[entrypoint] 安装依赖: pip install -r requirements.txt（国内镜像 + 长超时）"
-pip install --no-cache-dir -r requirements.txt \
-  -i https://pypi.tuna.tsinghua.edu.cn/simple --timeout 300
+# 若存在 tools/venv 则使用其 Python（与 NAS/office 同一环境），否则容器内安装依赖
+if [ -d "$TOOLS_DIR/venv/bin" ]; then
+  echo "[entrypoint] 使用 tools/venv，跳过 pip install"
+else
+  echo "[entrypoint] 安装依赖: pip install -r requirements.txt（国内镜像 + 长超时）"
+  pip install --no-cache-dir -r requirements.txt \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple --timeout 300
+fi
 
 echo "[entrypoint] 启动: $*"
 exec "$@"

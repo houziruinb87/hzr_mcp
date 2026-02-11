@@ -1,11 +1,12 @@
+# 版本固定，与 tools/venv 一致，便于 NAS / 各容器环境统一
 # 小智 MCP 桥接（mcp_pipe）：从 .env 加载 MCP_BASE_URL、MCP_TOKEN
-python-dotenv>=1.2.1
+python-dotenv==1.2.1
 # 小智 MCP 桥接（mcp_pipe）：WebSocket 连小智云端
-websockets>=15.0.1
+websockets==15.0.1
 # MCP 协议与工具定义（fastmcp 依赖）
-mcp>=1.20.0
-pydantic>=2.12.3
+mcp==1.20.0
+pydantic==2.12.3
 # MCP 服务（hzr_mcp.py）：@mcp.tool 等
-fastmcp>=2.13.0.2
-# 小米/米家设备控制（xiaomi 目录脚本）：miiocli / python-miio（0.6.0 正式版未上 PyPI/镜像，用 0.5.x 最新）
-python-miio>=0.5.12
+fastmcp==2.13.0.2
+# 小米/米家设备控制（xiaomi 目录脚本）
+python-miio==0.5.12
