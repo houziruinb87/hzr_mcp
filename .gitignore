@@ -3,5 +3,7 @@ __pycache__/
 node_modules/
 .env
 deploy.config
+devices
+devices.json
 *.pyc
 airproce_last_run.log
