@@ -52,3 +52,22 @@ docker exec -it hzr_mcp miiocli --version
 ```
 
 正式使用建议通过 `requirements.txt` + 重建镜像，与代码一起部署。
+
+## Token 与控制说明
+
+- **获取 token**： [Xiaomi-cloud-tokens-extractor](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor) 只负责从小米云拉取设备列表和 token，README 里没有「如何控制设备」的用法；控制需用本项目的 python-miio / miiocli 或脚本。
+- **requirements.txt** 中已固定 `click~=8.0.0`，避免与 python-miio 不兼容导致 miiocli 报错。
+
+## 控制命令（按设备协议区分）
+
+- **经典插座**（如 chuangmi.plug.v3）：  
+  `miiocli chuangmiplug --ip <IP> --token <TOKEN> on` / `off`
+
+- **MIOT 设备**（如 cuco.plug.v3、部分第三方插座/开关，报 `undefined command` 时）：走 MIOT 协议，用 `miotdevice`，开关多为 siid=2 piid=1。**参数按 Python 字面量传，布尔用 True/False（大写）**：
+  ```bash
+  # 开
+  miiocli miotdevice --ip 192.168.50.220 --token <TOKEN> raw_command set_properties '[{"siid":2,"piid":1,"value":True}]'
+  # 关
+  miiocli miotdevice --ip 192.168.50.220 --token <TOKEN> raw_command set_properties '[{"siid":2,"piid":1,"value":False}]'
+  ```
+  若不对，可用 `miiocli miotdevice --ip <IP> --token <TOKEN> --help` 或查 [python-miio 文档](https://python-miio.readthedocs.io/) 里 MiotDevice / get_properties 的 siid/piid 说明。
