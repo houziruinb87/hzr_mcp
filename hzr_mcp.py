@@ -19,6 +19,7 @@ ANDROID_ADB_PORT = os.environ.get("ANDROID_ADB_PORT", "5555")
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 AIRPROCE_SCRIPT = os.path.join(_SCRIPT_DIR, "airproce", "ensure_connect_and_select.py")
 XIAOMI_WUGUIDENG_SCRIPT = os.path.join(_SCRIPT_DIR, "xiaomi", "wuguideng", "control.py")
+XIAOMI_ZOULANGDENG_SCRIPT = os.path.join(_SCRIPT_DIR, "xiaomi", "zoulangdeng", "control.py")
 
 mcp = FastMCP("hzr")
 
@@ -154,6 +155,18 @@ def wuguideng_on() -> dict:
 def wuguideng_off() -> dict:
     """当用户说「关闭乌龟灯」「停止乌龟灯」「取消乌龟灯」时调用此工具，关闭乌龟灯（米家插座/灯）。"""
     return _run_xiaomi_script(XIAOMI_WUGUIDENG_SCRIPT, "off")
+
+
+@mcp.tool()
+def zoulangdeng_on() -> dict:
+    """当用户说「打开走廊灯」「开启走廊灯」时调用此工具，打开走廊灯（米家插座/灯）。"""
+    return _run_xiaomi_script(XIAOMI_ZOULANGDENG_SCRIPT, "on")
+
+
+@mcp.tool()
+def zoulangdeng_off() -> dict:
+    """当用户说「关闭走廊灯」「停止走廊灯」「取消走廊灯」时调用此工具，关闭走廊灯（米家插座/灯）。"""
+    return _run_xiaomi_script(XIAOMI_ZOULANGDENG_SCRIPT, "off")
 
 
 if __name__ == "__main__":
