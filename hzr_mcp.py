@@ -22,6 +22,7 @@ AIRPROCE_SCRIPT = os.path.join(_SCRIPT_DIR, "airproce", "ensure_connect_and_sele
 XIAOMI_WUGUIDENG_SCRIPT = os.path.join(_SCRIPT_DIR, "xiaomi", "wuguideng", "control.py")
 XIAOMI_ZOULANGDENG_SCRIPT = os.path.join(_SCRIPT_DIR, "xiaomi", "zoulangdeng", "control.py")
 XIAOMI_JIASHIQI_SCRIPT = os.path.join(_SCRIPT_DIR, "xiaomi", "jiashiqi", "control.py")
+XIAOMI_QUANWUDENG_SCRIPT = os.path.join(_SCRIPT_DIR, "xiaomi", "quanwudeng", "control.py")
 
 mcp = FastMCP("hzr")
 
@@ -464,6 +465,66 @@ def jiashiqi_set_mode(mode: int) -> dict:
         return {"success": False, "message": "模式必须是 1（睡眠）、2（自动）或 3（强劲）"}
     
     return _run_xiaomi_script(XIAOMI_JIASHIQI_SCRIPT, "mode", str(mode))
+
+
+@mcp.tool()
+def quanwudeng_on() -> dict:
+    """当用户说「打开全屋灯」「开启全屋灯」时调用此工具，立即打开全屋灯（绿米智能开关）。"""
+    return _run_xiaomi_script(XIAOMI_QUANWUDENG_SCRIPT, "on")
+
+
+@mcp.tool()
+def quanwudeng_off() -> dict:
+    """当用户说「关闭全屋灯」「停止全屋灯」时调用此工具，立即关闭全屋灯（绿米智能开关）。
+    注意：如果用户说「取消全屋灯」且上下文是取消延时任务，应调用 quanwudeng_cancel_delay。"""
+    return _run_xiaomi_script(XIAOMI_QUANWUDENG_SCRIPT, "off")
+
+
+@mcp.tool()
+def quanwudeng_delayed_on(delay: float, unit: str = "minutes") -> dict:
+    """延时开启全屋灯。当用户说「延时XX分钟后开启全屋灯」「XX秒后打开全屋灯」「XX小时后开全屋灯」「等XX分钟后开启全屋灯」时调用。
+    如果已有延时任务在运行，新任务会自动覆盖旧任务。
+    
+    Args:
+        delay: 延时时长（数字，如 5、30、1.5）
+        unit: 时间单位，可选 "seconds"（秒）、"minutes"（分钟）、"hours"（小时），默认分钟
+    """
+    unit_map = {"seconds": 1, "minutes": 60, "hours": 3600}
+    multiplier = unit_map.get(unit.lower(), 60)
+    delay_seconds = delay * multiplier
+    
+    if delay_seconds <= 0:
+        return {"success": False, "message": "延时时长必须大于 0"}
+    
+    return _schedule_delayed_action("全屋灯", XIAOMI_QUANWUDENG_SCRIPT, "on", delay_seconds)
+
+
+@mcp.tool()
+def quanwudeng_delayed_off(delay: float, unit: str = "minutes") -> dict:
+    """延时关闭全屋灯。当用户说「延时XX分钟后关闭全屋灯」「XX秒后关全屋灯」「XX小时后关闭全屋灯」「等XX分钟后关闭全屋灯」时调用。
+    如果已有延时任务在运行，新任务会自动覆盖旧任务。
+    
+    Args:
+        delay: 延时时长（数字，如 5、30、1.5）
+        unit: 时间单位，可选 "seconds"（秒）、"minutes"（分钟）、"hours"（小时），默认分钟
+    """
+    unit_map = {"seconds": 1, "minutes": 60, "hours": 3600}
+    multiplier = unit_map.get(unit.lower(), 60)
+    delay_seconds = delay * multiplier
+    
+    if delay_seconds <= 0:
+        return {"success": False, "message": "延时时长必须大于 0"}
+    
+    return _schedule_delayed_action("全屋灯", XIAOMI_QUANWUDENG_SCRIPT, "off", delay_seconds)
+
+
+@mcp.tool()
+def quanwudeng_cancel_delay() -> dict:
+    """取消全屋灯的所有延时任务。当用户说「取消全屋灯计时」「取消全屋灯延时」「取消倒计时全屋灯」时调用。"""
+    if _cancel_device_delay("全屋灯"):
+        return {"success": True, "message": "已取消全屋灯的延时任务"}
+    else:
+        return {"success": True, "message": "全屋灯当前没有延时任务"}
 
 
 if __name__ == "__main__":
