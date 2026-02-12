@@ -5,16 +5,20 @@
   python control.py on           # 打开加湿器
   python control.py off          # 关闭加湿器
   python control.py status       # 查询状态
-  python control.py level 1      # 设置为弱档
-  python control.py level 2      # 设置为中档
-  python control.py level 3      # 设置为强档
+  python control.py level 1      # 设置为弱档（手动档位）
+  python control.py level 2      # 设置为中档（手动档位）
+  python control.py level 3      # 设置为强档（手动档位）
+  python control.py mode 1       # 设置为睡眠模式（场景模式）
+  python control.py mode 2       # 设置为自动模式（场景模式）
+  python control.py mode 3       # 设置为强劲模式（场景模式）
   python control.py lock on      # 开启童锁
   python control.py lock off     # 关闭童锁
 
 从 ../devices.json 读取 YO Humidifier 的 ip/token。
 已验证属性：
   - siid=2, piid=1: 电源开关（True/False）
-  - siid=2, piid=10: 档位（1=弱档, 2=中档, 3=强档）
+  - siid=2, piid=9: 场景模式（1=睡眠, 2=自动, 3=强劲）
+  - siid=2, piid=10: 手动档位（1=弱档, 2=中档, 3=强档）
   - siid=4, piid=1: 功能锁/童锁（True/False）
 """
 from __future__ import annotations
@@ -57,7 +61,7 @@ def set_power(ip: str, token: str, on: bool) -> None:
 
 
 def set_level(ip: str, token: str, level: int) -> None:
-    """设置档位 (1=弱档, 2=中档, 3=强档)"""
+    """设置手动档位 (1=弱档, 2=中档, 3=强档)"""
     import subprocess
     if level not in (1, 2, 3):
         raise ValueError("档位必须是 1（弱）、2（中）或 3（强）")
@@ -70,6 +74,26 @@ def set_level(ip: str, token: str, level: int) -> None:
         "--ip", ip, "--token", token,
         "raw_command", "set_properties",
         f'[{{"siid":2,"piid":10,"value":{level}}}]',
+    ]
+    out = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+    if out.returncode != 0:
+        raise RuntimeError(out.stderr or out.stdout or f"退出码 {out.returncode}")
+
+
+def set_mode(ip: str, token: str, mode: int) -> None:
+    """设置场景模式 (1=睡眠, 2=自动, 3=强劲)"""
+    import subprocess
+    if mode not in (1, 2, 3):
+        raise ValueError("模式必须是 1（睡眠）、2（自动）或 3（强劲）")
+    bin_dir = os.path.dirname(os.path.abspath(sys.executable))
+    miiocli_cmd = os.path.join(bin_dir, "miiocli")
+    if not os.path.isfile(miiocli_cmd):
+        miiocli_cmd = "miiocli"
+    cmd = [
+        miiocli_cmd, "miotdevice",
+        "--ip", ip, "--token", token,
+        "raw_command", "set_properties",
+        f'[{{"siid":2,"piid":9,"value":{mode}}}]',
     ]
     out = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
     if out.returncode != 0:
@@ -118,7 +142,7 @@ def get_status(ip: str, token: str) -> dict:
 
 def main() -> int:
     if len(sys.argv) < 2:
-        print("用法: control.py on|off|status|level <1-3>|lock <on|off>", file=sys.stderr)
+        print("用法: control.py on|off|status|level <1-3>|mode <1-3>|lock <on|off>", file=sys.stderr)
         return 1
     
     action = (sys.argv[1] or "").strip().lower()
@@ -163,6 +187,23 @@ def main() -> int:
                 print("档位必须是 1（弱档）、2（中档）或 3（强档）", file=sys.stderr)
                 return 1
         
+        elif action == "mode":
+            if len(sys.argv) < 3:
+                print("用法: control.py mode <1-3>", file=sys.stderr)
+                print("  1 = 睡眠模式, 2 = 自动模式, 3 = 强劲模式", file=sys.stderr)
+                return 1
+            try:
+                mode = int(sys.argv[2])
+                if mode not in (1, 2, 3):
+                    raise ValueError()
+                set_mode(ip, token, mode)
+                mode_names = {1: "睡眠模式", 2: "自动模式", 3: "强劲模式"}
+                print(f"已设置为{mode_names[mode]}")
+                return 0
+            except ValueError:
+                print("模式必须是 1（睡眠模式）、2（自动模式）或 3（强劲模式）", file=sys.stderr)
+                return 1
+        
         elif action == "lock":
             if len(sys.argv) < 3:
                 print("用法: control.py lock <on|off>", file=sys.stderr)
@@ -177,7 +218,7 @@ def main() -> int:
             return 0
         
         else:
-            print("用法: control.py on|off|status|level <1-3>|lock <on|off>", file=sys.stderr)
+            print("用法: control.py on|off|status|level <1-3>|mode <1-3>|lock <on|off>", file=sys.stderr)
             return 1
             
     except Exception as e:

@@ -444,5 +444,27 @@ def jiashiqi_child_lock(enable: bool) -> dict:
     return _run_xiaomi_script(XIAOMI_JIASHIQI_SCRIPT, "lock", action)
 
 
+@mcp.tool()
+def jiashiqi_set_mode(mode: int) -> dict:
+    """设置加湿器场景模式。当用户说「加湿器睡眠模式」「加湿器自动模式」「加湿器强劲模式」时调用。
+    
+    场景模式和手动档位的区别：
+    - 手动档位(level)：固定风量，1=弱档/2=中档/3=强档
+    - 场景模式(mode)：智能调节，1=睡眠/2=自动/3=强劲
+    
+    Args:
+        mode: 场景模式，1=睡眠模式, 2=自动模式, 3=强劲模式
+    
+    Examples:
+        - 用户说「加湿器睡眠模式」→ mode=1
+        - 用户说「加湿器自动模式」→ mode=2
+        - 用户说「加湿器强劲模式」→ mode=3
+    """
+    if mode not in (1, 2, 3):
+        return {"success": False, "message": "模式必须是 1（睡眠）、2（自动）或 3（强劲）"}
+    
+    return _run_xiaomi_script(XIAOMI_JIASHIQI_SCRIPT, "mode", str(mode))
+
+
 if __name__ == "__main__":
     mcp.run(transport="stdio")
