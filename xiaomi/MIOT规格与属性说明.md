@@ -57,9 +57,16 @@
 
 ---
 
+## 延时/定时功能
+
+延时开、定时关等在本机上的**正确 API 与发现步骤**（get_properties、set_properties、action 的官方用法，以及如何先发现再写指令）见 [延时与定时API说明.md](延时与定时API说明.md)。
+
+---
+
 ## 小结
 
 | 需求 | 推荐来源 |
 |------|----------|
 | siid/piid 在协议里是什么意思 | 小米 [MiEcosystem/miot-spec-doc](https://github.com/MiEcosystem/miot-spec-doc) |
 | 某型号（如 cuco.plug.v3）的 siid/piid 做什么 | [home.miot-spec.com](https://home.miot-spec.com/s/)、python-miio、hass-xiaomi-miot 等按型号查 |
+| 延时/定时如何调、如何发现 | [延时与定时API说明.md](延时与定时API说明.md) |
