@@ -21,6 +21,7 @@ _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 AIRPROCE_SCRIPT = os.path.join(_SCRIPT_DIR, "airproce", "ensure_connect_and_select.py")
 XIAOMI_WUGUIDENG_SCRIPT = os.path.join(_SCRIPT_DIR, "xiaomi", "wuguideng", "control.py")
 XIAOMI_ZOULANGDENG_SCRIPT = os.path.join(_SCRIPT_DIR, "xiaomi", "zoulangdeng", "control.py")
+XIAOMI_JIASHIQI_SCRIPT = os.path.join(_SCRIPT_DIR, "xiaomi", "jiashiqi", "control.py")
 
 mcp = FastMCP("hzr")
 
@@ -348,6 +349,66 @@ def zoulangdeng_cancel_delay() -> dict:
         return {"success": True, "message": "已取消走廊灯的延时任务"}
     else:
         return {"success": True, "message": "走廊灯当前没有延时任务"}
+
+
+@mcp.tool()
+def jiashiqi_on() -> dict:
+    """当用户说「打开加湿器」「开启加湿器」时调用此工具，立即打开 YO 加湿器。"""
+    return _run_xiaomi_script(XIAOMI_JIASHIQI_SCRIPT, "on")
+
+
+@mcp.tool()
+def jiashiqi_off() -> dict:
+    """当用户说「关闭加湿器」「停止加湿器」时调用此工具，立即关闭 YO 加湿器。
+    注意：如果用户说「取消加湿器」且上下文是取消延时任务，应调用 jiashiqi_cancel_delay。"""
+    return _run_xiaomi_script(XIAOMI_JIASHIQI_SCRIPT, "off")
+
+
+@mcp.tool()
+def jiashiqi_delayed_on(delay: float, unit: str = "minutes") -> dict:
+    """延时开启加湿器。当用户说「延时XX分钟后开启加湿器」「XX秒后打开加湿器」「XX小时后开加湿器」「等XX分钟后开启加湿器」时调用。
+    如果已有延时任务在运行，新任务会自动覆盖旧任务。
+    
+    Args:
+        delay: 延时时长（数字，如 5、30、1.5）
+        unit: 时间单位，可选 "seconds"（秒）、"minutes"（分钟）、"hours"（小时），默认分钟
+    """
+    unit_map = {"seconds": 1, "minutes": 60, "hours": 3600}
+    multiplier = unit_map.get(unit.lower(), 60)
+    delay_seconds = delay * multiplier
+    
+    if delay_seconds <= 0:
+        return {"success": False, "message": "延时时长必须大于 0"}
+    
+    return _schedule_delayed_action("加湿器", XIAOMI_JIASHIQI_SCRIPT, "on", delay_seconds)
+
+
+@mcp.tool()
+def jiashiqi_delayed_off(delay: float, unit: str = "minutes") -> dict:
+    """延时关闭加湿器。当用户说「延时XX分钟后关闭加湿器」「XX秒后关加湿器」「XX小时后关闭加湿器」「等XX分钟后关闭加湿器」时调用。
+    如果已有延时任务在运行，新任务会自动覆盖旧任务。
+    
+    Args:
+        delay: 延时时长（数字，如 5、30、1.5）
+        unit: 时间单位，可选 "seconds"（秒）、"minutes"（分钟）、"hours"（小时），默认分钟
+    """
+    unit_map = {"seconds": 1, "minutes": 60, "hours": 3600}
+    multiplier = unit_map.get(unit.lower(), 60)
+    delay_seconds = delay * multiplier
+    
+    if delay_seconds <= 0:
+        return {"success": False, "message": "延时时长必须大于 0"}
+    
+    return _schedule_delayed_action("加湿器", XIAOMI_JIASHIQI_SCRIPT, "off", delay_seconds)
+
+
+@mcp.tool()
+def jiashiqi_cancel_delay() -> dict:
+    """取消加湿器的所有延时任务。当用户说「取消加湿器计时」「取消加湿器延时」「取消倒计时加湿器」时调用。"""
+    if _cancel_device_delay("加湿器"):
+        return {"success": True, "message": "已取消加湿器的延时任务"}
+    else:
+        return {"success": True, "message": "加湿器当前没有延时任务"}
 
 
 if __name__ == "__main__":
