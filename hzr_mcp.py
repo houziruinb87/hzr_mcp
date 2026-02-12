@@ -4,6 +4,7 @@ import sys
 import logging
 import os
 import subprocess
+import threading
 
 logger = logging.getLogger("hzr_mcp")
 
@@ -22,6 +23,78 @@ XIAOMI_WUGUIDENG_SCRIPT = os.path.join(_SCRIPT_DIR, "xiaomi", "wuguideng", "cont
 XIAOMI_ZOULANGDENG_SCRIPT = os.path.join(_SCRIPT_DIR, "xiaomi", "zoulangdeng", "control.py")
 
 mcp = FastMCP("hzr")
+
+# ---------- 延时任务管理 ----------
+# 全局延时任务跟踪：{设备名: Timer对象}
+_delayed_tasks = {}
+_delayed_tasks_lock = threading.Lock()
+
+
+def _cancel_device_delay(device_name: str) -> bool:
+    """取消指定设备的延时任务。返回 True 如果有任务被取消，False 如果没有任务在运行。"""
+    with _delayed_tasks_lock:
+        if device_name in _delayed_tasks:
+            timer = _delayed_tasks[device_name]
+            timer.cancel()
+            del _delayed_tasks[device_name]
+            logger.info(f"已取消 {device_name} 的延时任务")
+            return True
+        return False
+
+
+def _schedule_delayed_action(
+    device_name: str, script_path: str, action: str, delay_seconds: float
+) -> dict:
+    """安排延时任务。如果该设备已有延时任务，会先取消旧任务。
+    
+    Args:
+        device_name: 设备名称（如 "乌龟灯"）
+        script_path: 控制脚本路径
+        action: 动作（"on" 或 "off"）
+        delay_seconds: 延时秒数
+    
+    Returns:
+        {"success": True, "message": "...", "delay_seconds": ...}
+    """
+    # 先取消旧任务
+    had_old_task = _cancel_device_delay(device_name)
+    
+    # 创建新任务
+    def execute():
+        try:
+            logger.info(f"{device_name} 延时到期，执行 {action}")
+            result = _run_xiaomi_script(script_path, action)
+            if result.get("success"):
+                logger.info(f"{device_name} {action} 成功")
+            else:
+                logger.error(f"{device_name} {action} 失败: {result.get('message')}")
+        except Exception as e:
+            logger.exception(f"{device_name} 延时任务执行异常")
+        finally:
+            # 任务完成后清理
+            with _delayed_tasks_lock:
+                if device_name in _delayed_tasks:
+                    del _delayed_tasks[device_name]
+    
+    timer = threading.Timer(delay_seconds, execute)
+    
+    with _delayed_tasks_lock:
+        _delayed_tasks[device_name] = timer
+    
+    timer.start()
+    
+    action_cn = "开启" if action == "on" else "关闭"
+    msg = f"已设置 {device_name} 延时 {delay_seconds:.0f} 秒后{action_cn}"
+    if had_old_task:
+        msg += "（已覆盖之前的延时任务）"
+    
+    logger.info(msg)
+    return {
+        "success": True,
+        "message": msg,
+        "delay_seconds": delay_seconds,
+        "action": action_cn,
+    }
 
 
 @mcp.tool()
@@ -147,26 +220,134 @@ def _run_xiaomi_script(script_path: str, arg: str) -> dict:
 
 @mcp.tool()
 def wuguideng_on() -> dict:
-    """当用户说「打开乌龟灯」「开启乌龟灯」时调用此工具，打开乌龟灯（米家插座/灯）。"""
+    """当用户说「打开乌龟灯」「开启乌龟灯」时调用此工具，立即打开乌龟灯（米家插座/灯）。"""
     return _run_xiaomi_script(XIAOMI_WUGUIDENG_SCRIPT, "on")
 
 
 @mcp.tool()
 def wuguideng_off() -> dict:
-    """当用户说「关闭乌龟灯」「停止乌龟灯」「取消乌龟灯」时调用此工具，关闭乌龟灯（米家插座/灯）。"""
+    """当用户说「关闭乌龟灯」「停止乌龟灯」时调用此工具，立即关闭乌龟灯（米家插座/灯）。
+    注意：如果用户说「取消乌龟灯」且上下文是取消延时任务，应调用 wuguideng_cancel_delay。"""
     return _run_xiaomi_script(XIAOMI_WUGUIDENG_SCRIPT, "off")
 
 
 @mcp.tool()
+def wuguideng_delayed_on(delay: float, unit: str = "minutes") -> dict:
+    """延时开启乌龟灯。当用户说「延时XX分钟后开启乌龟灯」「XX秒后打开乌龟灯」「XX小时后开乌龟灯」「等XX分钟后开启乌龟灯」时调用。
+    如果已有延时任务在运行，新任务会自动覆盖旧任务。
+    
+    Args:
+        delay: 延时时长（数字，如 5、30、1.5）
+        unit: 时间单位，可选 "seconds"（秒）、"minutes"（分钟）、"hours"（小时），默认分钟
+    
+    Examples:
+        - 用户说「30秒后开启乌龟灯」→ delay=30, unit="seconds"
+        - 用户说「5分钟后打开乌龟灯」→ delay=5, unit="minutes"
+        - 用户说「1小时后开乌龟灯」→ delay=1, unit="hours"
+    """
+    # 转换为秒
+    unit_map = {"seconds": 1, "minutes": 60, "hours": 3600}
+    multiplier = unit_map.get(unit.lower(), 60)  # 默认分钟
+    delay_seconds = delay * multiplier
+    
+    if delay_seconds <= 0:
+        return {"success": False, "message": "延时时长必须大于 0"}
+    
+    return _schedule_delayed_action("乌龟灯", XIAOMI_WUGUIDENG_SCRIPT, "on", delay_seconds)
+
+
+@mcp.tool()
+def wuguideng_delayed_off(delay: float, unit: str = "minutes") -> dict:
+    """延时关闭乌龟灯。当用户说「延时XX分钟后关闭乌龟灯」「XX秒后关乌龟灯」「XX小时后关闭乌龟灯」「等XX分钟后关闭乌龟灯」时调用。
+    如果已有延时任务在运行，新任务会自动覆盖旧任务。
+    
+    Args:
+        delay: 延时时长（数字，如 5、30、1.5）
+        unit: 时间单位，可选 "seconds"（秒）、"minutes"（分钟）、"hours"（小时），默认分钟
+    
+    Examples:
+        - 用户说「30秒后关闭乌龟灯」→ delay=30, unit="seconds"
+        - 用户说「5分钟后关乌龟灯」→ delay=5, unit="minutes"
+        - 用户说「1小时后关闭乌龟灯」→ delay=1, unit="hours"
+    """
+    # 转换为秒
+    unit_map = {"seconds": 1, "minutes": 60, "hours": 3600}
+    multiplier = unit_map.get(unit.lower(), 60)  # 默认分钟
+    delay_seconds = delay * multiplier
+    
+    if delay_seconds <= 0:
+        return {"success": False, "message": "延时时长必须大于 0"}
+    
+    return _schedule_delayed_action("乌龟灯", XIAOMI_WUGUIDENG_SCRIPT, "off", delay_seconds)
+
+
+@mcp.tool()
+def wuguideng_cancel_delay() -> dict:
+    """取消乌龟灯的所有延时任务。当用户说「取消乌龟灯计时」「取消乌龟灯延时」「取消倒计时乌龟灯」时调用。"""
+    if _cancel_device_delay("乌龟灯"):
+        return {"success": True, "message": "已取消乌龟灯的延时任务"}
+    else:
+        return {"success": True, "message": "乌龟灯当前没有延时任务"}
+
+
+@mcp.tool()
 def zoulangdeng_on() -> dict:
-    """当用户说「打开走廊灯」「开启走廊灯」时调用此工具，打开走廊灯（米家插座/灯）。"""
+    """当用户说「打开走廊灯」「开启走廊灯」时调用此工具，立即打开走廊灯（米家插座/灯）。"""
     return _run_xiaomi_script(XIAOMI_ZOULANGDENG_SCRIPT, "on")
 
 
 @mcp.tool()
 def zoulangdeng_off() -> dict:
-    """当用户说「关闭走廊灯」「停止走廊灯」「取消走廊灯」时调用此工具，关闭走廊灯（米家插座/灯）。"""
+    """当用户说「关闭走廊灯」「停止走廊灯」时调用此工具，立即关闭走廊灯（米家插座/灯）。
+    注意：如果用户说「取消走廊灯」且上下文是取消延时任务，应调用 zoulangdeng_cancel_delay。"""
     return _run_xiaomi_script(XIAOMI_ZOULANGDENG_SCRIPT, "off")
+
+
+@mcp.tool()
+def zoulangdeng_delayed_on(delay: float, unit: str = "minutes") -> dict:
+    """延时开启走廊灯。当用户说「延时XX分钟后开启走廊灯」「XX秒后打开走廊灯」「XX小时后开走廊灯」「等XX分钟后开启走廊灯」时调用。
+    如果已有延时任务在运行，新任务会自动覆盖旧任务。
+    
+    Args:
+        delay: 延时时长（数字，如 5、30、1.5）
+        unit: 时间单位，可选 "seconds"（秒）、"minutes"（分钟）、"hours"（小时），默认分钟
+    """
+    unit_map = {"seconds": 1, "minutes": 60, "hours": 3600}
+    multiplier = unit_map.get(unit.lower(), 60)
+    delay_seconds = delay * multiplier
+    
+    if delay_seconds <= 0:
+        return {"success": False, "message": "延时时长必须大于 0"}
+    
+    return _schedule_delayed_action("走廊灯", XIAOMI_ZOULANGDENG_SCRIPT, "on", delay_seconds)
+
+
+@mcp.tool()
+def zoulangdeng_delayed_off(delay: float, unit: str = "minutes") -> dict:
+    """延时关闭走廊灯。当用户说「延时XX分钟后关闭走廊灯」「XX秒后关走廊灯」「XX小时后关闭走廊灯」「等XX分钟后关闭走廊灯」时调用。
+    如果已有延时任务在运行，新任务会自动覆盖旧任务。
+    
+    Args:
+        delay: 延时时长（数字，如 5、30、1.5）
+        unit: 时间单位，可选 "seconds"（秒）、"minutes"（分钟）、"hours"（小时），默认分钟
+    """
+    unit_map = {"seconds": 1, "minutes": 60, "hours": 3600}
+    multiplier = unit_map.get(unit.lower(), 60)
+    delay_seconds = delay * multiplier
+    
+    if delay_seconds <= 0:
+        return {"success": False, "message": "延时时长必须大于 0"}
+    
+    return _schedule_delayed_action("走廊灯", XIAOMI_ZOULANGDENG_SCRIPT, "off", delay_seconds)
+
+
+@mcp.tool()
+def zoulangdeng_cancel_delay() -> dict:
+    """取消走廊灯的所有延时任务。当用户说「取消走廊灯计时」「取消走廊灯延时」「取消倒计时走廊灯」时调用。"""
+    if _cancel_device_delay("走廊灯"):
+        return {"success": True, "message": "已取消走廊灯的延时任务"}
+    else:
+        return {"success": True, "message": "走廊灯当前没有延时任务"}
 
 
 if __name__ == "__main__":
