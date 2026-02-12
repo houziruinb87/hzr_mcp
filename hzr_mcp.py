@@ -15,9 +15,10 @@ if sys.platform == "win32":
 ADB_CMD = os.environ.get("ADB_PATH", "adb")
 ANDROID_ADB_PORT = os.environ.get("ANDROID_ADB_PORT", "5555")
 
-# airproce 脚本路径（与 hzr_mcp.py 同目录下的 airproce/ensure_connect_and_select.py）
+# 脚本路径（与 hzr_mcp.py 同目录）
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 AIRPROCE_SCRIPT = os.path.join(_SCRIPT_DIR, "airproce", "ensure_connect_and_select.py")
+XIAOMI_WUGUIDENG_SCRIPT = os.path.join(_SCRIPT_DIR, "xiaomi", "wuguideng", "control.py")
 
 mcp = FastMCP("hzr")
 
@@ -114,6 +115,45 @@ def airproce_control(device_ip: str | None = None, port: str | None = None) -> d
     except Exception as e:
         logger.exception("airproce_control failed")
         return {"success": False, "message": "[新风机控制失败] 启动后台任务异常: " + str(e), "returncode": -1}
+
+
+def _run_xiaomi_script(script_path: str, arg: str) -> dict:
+    """执行 xiaomi 某设备控制脚本（如 xiaomi/wuguideng/control.py on）。"""
+    if not os.path.isfile(script_path):
+        return {"success": False, "message": f"未找到脚本: {script_path}"}
+    try:
+        out = subprocess.run(
+            [sys.executable, script_path, arg],
+            cwd=_SCRIPT_DIR,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        stdout = (out.stdout or "").strip()
+        stderr = (out.stderr or "").strip()
+        ok = out.returncode == 0
+        return {
+            "success": ok,
+            "message": stdout if ok else (stderr or f"退出码 {out.returncode}"),
+            "returncode": out.returncode,
+        }
+    except subprocess.TimeoutExpired:
+        return {"success": False, "message": "执行超时", "returncode": -1}
+    except Exception as e:
+        logger.exception("xiaomi script failed")
+        return {"success": False, "message": str(e), "returncode": -1}
+
+
+@mcp.tool()
+def wuguideng_on() -> dict:
+    """当用户说「打开乌龟灯」「开启乌龟灯」时调用此工具，打开乌龟灯（米家插座/灯）。"""
+    return _run_xiaomi_script(XIAOMI_WUGUIDENG_SCRIPT, "on")
+
+
+@mcp.tool()
+def wuguideng_off() -> dict:
+    """当用户说「关闭乌龟灯」「停止乌龟灯」「取消乌龟灯」时调用此工具，关闭乌龟灯（米家插座/灯）。"""
+    return _run_xiaomi_script(XIAOMI_WUGUIDENG_SCRIPT, "off")
 
 
 if __name__ == "__main__":

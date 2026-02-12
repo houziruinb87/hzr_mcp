@@ -1,0 +1,38 @@
+{
+  "server": "cn",
+  "home": "730001656614",
+  "devices": [
+    {
+      "name": "乌龟灯",
+      "id": "957917197",
+      "mac": "2C:19:5C:00:E8:4C",
+      "ip": "192.168.50.220",
+      "token": "e6c9cc7e3041298eb0bd32ad75f11d33",
+      "model": "cuco.plug.v3"
+    },
+    {
+      "name": "全屋灯",
+      "id": "735614850",
+      "mac": "B8:50:D8:81:97:F3",
+      "ip": "192.168.50.218",
+      "token": "33ca310ad290afd1ac98453c44c3faa2",
+      "model": "lxzn.switch.cbcsmj"
+    },
+    {
+      "name": "YO Humidifier",
+      "id": "846475253",
+      "mac": "E8:4A:54:B0:22:FA",
+      "ip": "192.168.50.203",
+      "token": "f7f296300d02ac9b5bf0b13d1a3c7995",
+      "model": "yodq.humidifier.yo001"
+    },
+    {
+      "name": "走廊灯",
+      "id": "945369053",
+      "mac": "CC:DA:20:84:7B:71",
+      "ip": "192.168.50.181",
+      "token": "5d3398d592761f5459ba83b549409901",
+      "model": "cuco.plug.v3"
+    }
+  ]
+}

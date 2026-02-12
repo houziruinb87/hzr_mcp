@@ -1,0 +1,30 @@
+Devices found for server "cn" @ home "730001656614":
+   ---------
+   NAME:     乌龟灯
+   ID:       957917197
+   MAC:      2C:19:5C:00:E8:4C
+   IP:       192.168.50.220
+   TOKEN:    e6c9cc7e3041298eb0bd32ad75f11d33
+   MODEL:    cuco.plug.v3
+   ---------
+   NAME:     全屋灯
+   ID:       735614850
+   MAC:      B8:50:D8:81:97:F3
+   IP:       192.168.50.218
+   TOKEN:    33ca310ad290afd1ac98453c44c3faa2
+   MODEL:    lxzn.switch.cbcsmj
+   ---------
+   NAME:     YO Humidifier
+   ID:       846475253
+   MAC:      E8:4A:54:B0:22:FA
+   IP:       192.168.50.203
+   TOKEN:    f7f296300d02ac9b5bf0b13d1a3c7995
+   MODEL:    yodq.humidifier.yo001
+   ---------
+   NAME:     走廊灯
+   ID:       945369053
+   MAC:      CC:DA:20:84:7B:71
+   IP:       192.168.50.181
+   TOKEN:    5d3398d592761f5459ba83b549409901
+   MODEL:    cuco.plug.v3
+   ---------
