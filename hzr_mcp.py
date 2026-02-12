@@ -192,13 +192,13 @@ def airproce_control(device_ip: str | None = None, port: str | None = None) -> d
         return {"success": False, "message": "[新风机控制失败] 启动后台任务异常: " + str(e), "returncode": -1}
 
 
-def _run_xiaomi_script(script_path: str, arg: str) -> dict:
+def _run_xiaomi_script(script_path: str, *args: str) -> dict:
     """执行 xiaomi 某设备控制脚本（如 xiaomi/wuguideng/control.py on）。"""
     if not os.path.isfile(script_path):
         return {"success": False, "message": f"未找到脚本: {script_path}"}
     try:
         out = subprocess.run(
-            [sys.executable, script_path, arg],
+            [sys.executable, script_path, *args],
             cwd=_SCRIPT_DIR,
             capture_output=True,
             text=True,
@@ -409,6 +409,39 @@ def jiashiqi_cancel_delay() -> dict:
         return {"success": True, "message": "已取消加湿器的延时任务"}
     else:
         return {"success": True, "message": "加湿器当前没有延时任务"}
+
+
+@mcp.tool()
+def jiashiqi_set_level(level: int) -> dict:
+    """设置加湿器档位。当用户说「加湿器弱档」「加湿器设置中档」「加湿器强档」「加湿器调到最强」时调用。
+    
+    Args:
+        level: 档位，1=弱档, 2=中档, 3=强档
+    
+    Examples:
+        - 用户说「加湿器弱档」→ level=1
+        - 用户说「加湿器中档」→ level=2
+        - 用户说「加湿器强档」或「加湿器最强」→ level=3
+    """
+    if level not in (1, 2, 3):
+        return {"success": False, "message": "档位必须是 1（弱档）、2（中档）或 3（强档）"}
+    
+    return _run_xiaomi_script(XIAOMI_JIASHIQI_SCRIPT, "level", str(level))
+
+
+@mcp.tool()
+def jiashiqi_child_lock(enable: bool) -> dict:
+    """控制加湿器童锁（功能锁）。当用户说「加湿器开启童锁」「加湿器锁定」「加湿器解锁」「关闭加湿器童锁」时调用。
+    
+    Args:
+        enable: True=开启童锁, False=关闭童锁
+    
+    Examples:
+        - 用户说「加湿器开启童锁」「加湿器锁定」→ enable=True
+        - 用户说「加湿器关闭童锁」「加湿器解锁」→ enable=False
+    """
+    action = "on" if enable else "off"
+    return _run_xiaomi_script(XIAOMI_JIASHIQI_SCRIPT, "lock", action)
 
 
 if __name__ == "__main__":
