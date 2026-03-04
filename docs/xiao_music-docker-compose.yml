@@ -1,0 +1,17 @@
+# XiaoMusic Docker Compose（与 music、conf 同目录使用）
+# 目录结构：xiao_music/music、xiao_music/conf、xiao_music/docker-compose.yml
+# 用法：在本目录下执行  docker compose up -d  启动，docker compose down  停止
+# 国内拉取建议用镜像：docker.hanxi.cc/hanxi/xiaomusic
+
+services:
+  xiaomusic:
+    image: docker.hanxi.cc/hanxi/xiaomusic:latest
+    container_name: xiaomusic
+    restart: unless-stopped
+    ports:
+      - "58090:8090"
+    volumes:
+      - ./music:/app/music
+      - ./conf:/app/conf
+    environment:
+      - XIAOMUSIC_HOSTNAME=192.168.50.86   # 极空间局域网 IP，不要带端口
