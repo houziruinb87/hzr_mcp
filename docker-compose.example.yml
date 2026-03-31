@@ -30,6 +30,8 @@ services:
       - /path/to/nas/docker/office/tools:/workspace/tools:ro
     environment:
       ADB_PATH: /workspace/tools/android-sdk/platform-tools/adb
+      # 若容器内无法 git pull（内网 GitLab 或 GitHub 不可达），设为 1
+      SKIP_GIT_FETCH: "1"
       # 镜像内已装 OpenJDK 17；arm64 可覆盖 JAVA_HOME: /usr/lib/jvm/java-17-openjdk-arm64
     # 可选：指定拉取分支（默认 main）
     #   GIT_BRANCH: main

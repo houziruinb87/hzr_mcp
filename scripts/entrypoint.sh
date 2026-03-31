@@ -53,9 +53,13 @@ if [ -d /root/.ssh ] && [ -f /root/.ssh/config ]; then
 fi
 
 BRANCH="${GIT_BRANCH:-main}"
-echo "[entrypoint] 拉取最新代码: git fetch origin && git reset --hard origin/${BRANCH}"
-git fetch origin
-git reset --hard "origin/${BRANCH}"
+if [ "${SKIP_GIT_FETCH:-0}" = "1" ]; then
+  echo "[entrypoint] SKIP_GIT_FETCH=1，跳过 git fetch（适用于 NAS 无法访问 GitLab/GitHub 时）"
+else
+  echo "[entrypoint] 拉取最新代码: git fetch origin && git reset --hard origin/${BRANCH}"
+  git fetch origin
+  git reset --hard "origin/${BRANCH}"
+fi
 
 # 若 tools/venv 存在且其 python 在容器内可运行（同机 NAS 时成立；否则 venv 在别机创建、解释器路径可能不可用），则使用 venv 并跳过 pip
 USE_VENV=0
