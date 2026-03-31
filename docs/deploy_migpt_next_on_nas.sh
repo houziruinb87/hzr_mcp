@@ -4,7 +4,7 @@
 
 set -e
 NAS_USER_HOST="jkj"
-REMOTE_BASE="/data_n003/data/udata/real/18510411307/docker/MiGPT-Next"
+REMOTE_BASE="/path/to/nas/udata/real/YOUR_USER_ID/docker/MiGPT-Next"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_SRC="$SCRIPT_DIR/migpt-next-config.example.js"
 COMPOSE_SRC="$SCRIPT_DIR/migpt-next-docker-compose.yml"

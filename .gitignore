@@ -5,3 +5,7 @@ node_modules/
 deploy.config
 *.pyc
 airproce_last_run.log
+
+# 本地设备与局域网信息（勿提交）
+xiaomi/devices.json
+name_to_ip.json

@@ -1,0 +1,16 @@
+# Open-XiaoAI Server (examples/xiaozhi) + oxa-server 增强
+# 免唤醒 + 爸爸最帅 + bridge_server 新风机；端口 4399
+# 用法：在本目录下执行 docker compose up -d 启动
+
+services:
+  open-xiaoai-xiaozhi:
+    image: docker.1ms.run/idootop/open-xiaoai-xiaozhi:latest
+    container_name: open-xiaoai-xiaozhi
+    restart: unless-stopped
+    ports:
+      - "4399:4399"
+    volumes:
+      - ./config_oxa.py:/app/config.py
+      - ./oxa_ext:/app/oxa_ext
+    # 显式在 /app 下先跑 keywords.py 再跑 main，保证用当前 config 生成唤醒词
+    command: ["/bin/bash", "-c", "cd /app && source .venv/bin/activate && python xiaozhi/services/audio/kws/keywords.py && exec python main.py"]

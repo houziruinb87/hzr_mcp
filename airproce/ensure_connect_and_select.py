@@ -24,7 +24,7 @@ CONNECT_TIMEOUT_SEC = 15
 STEP_LOG: list[tuple[str, bool, str]] = []
 
 ADB_CMD = os.environ.get("ADB_PATH", "adb")
-DEFAULT_IP = os.environ.get("ADB_DEVICE_IP", "10.5.234.21")
+DEFAULT_IP = os.environ.get("ADB_DEVICE_IP", "192.168.1.100")
 DEFAULT_PORT = os.environ.get("ADB_DEVICE_PORT", "5555")
 
 # 以下包名/Activity 按实际设备修改

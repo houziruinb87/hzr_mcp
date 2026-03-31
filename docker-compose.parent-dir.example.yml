@@ -28,9 +28,9 @@ services:
     env_file: .env
     volumes:
       - ./hzr_mcp:/app
-      - /data_n003/data/udata/real/18510411307/docker/office/tools:/workspace/tools:ro
+      - /path/to/nas/docker/office/tools:/workspace/tools:ro
       # 供容器内 git fetch（GitLab 在主机 127.0.0.1:2222），按实际 .ssh 路径修改：
-      # - /data_n003/data/udata/real/18510411307/.ssh:/root/.ssh:ro
+      # - /path/to/nas/.ssh:/root/.ssh:ro
     environment:
       ADB_PATH: /workspace/tools/android-sdk/platform-tools/adb
       # 镜像内已装 OpenJDK 17 并设 JAVA_HOME；若 NAS 为 arm64 可覆盖：

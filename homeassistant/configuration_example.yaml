@@ -1,0 +1,72 @@
+# Home Assistant 配置示例：通过 Siri/HomePod 控制 hzr_mcp 设备
+# 将需要的部分合并到你的 configuration.yaml，或按说明在「设置」-「设备与服务」里配置
+
+# ---------- 方案一：HA 能执行 docker 时，用 command_line 开关 ----------
+# 把下面的 switch 块合并到 configuration.yaml
+# 注意：command_line 开关需要 HA 能执行 docker（例如挂载了 docker.sock）
+# 请把 YOUR_HZR_MCP_CONTAINER 换成实际容器名，如 hzr_mcp
+
+# switch:
+#   - platform: command_line
+#     switches:
+#       jiashiqi:
+#         command_on: "docker exec YOUR_HZR_MCP_CONTAINER python /app/xiaomi/jiashiqi/control.py on"
+#         command_off: "docker exec YOUR_HZR_MCP_CONTAINER python /app/xiaomi/jiashiqi/control.py off"
+#         command_state: "docker exec YOUR_HZR_MCP_CONTAINER python /app/xiaomi/jiashiqi/control.py status"
+#         value_template: "{{ value == 'on' }}"
+#         friendly_name: "加湿器"
+
+# ---------- 方案二：通过 HTTP 桥接服务（bridge_server.py）----------
+# 1. 在 NAS 上运行 bridge_server.py（见 README）
+# 2. 在 HA 里添加 rest_command 和 template 开关
+
+# rest_command:
+#   jiashiqi_on:
+#     url: "http://NAS的IP:8765/jiashiqi/on"
+#     method: POST
+#   jiashiqi_off:
+#     url: "http://NAS的IP:8765/jiashiqi/off"
+#     method: POST
+#   wuguideng_on:
+#     url: "http://NAS的IP:8765/wuguideng/on"
+#     method: POST
+#   wuguideng_off:
+#     url: "http://NAS的IP:8765/wuguideng/off"
+#     method: POST
+#   zoulangdeng_on:
+#     url: "http://NAS的IP:8765/zoulangdeng/on"
+#     method: POST
+#   zoulangdeng_off:
+#     url: "http://NAS的IP:8765/zoulangdeng/off"
+#     method: POST
+#   quanwudeng_on:
+#     url: "http://NAS的IP:8765/quanwudeng/on"
+#     method: POST
+#   quanwudeng_off:
+#     url: "http://NAS的IP:8765/quanwudeng/off"
+#     method: POST
+
+# template:
+#   - trigger: []
+#     switch:
+#       - unique_id: jiashiqi_hzr_mcp
+#         name: "加湿器"
+#         turn_on:
+#           service: rest_command.jiashiqi_on
+#         turn_off:
+#           service: rest_command.jiashiqi_off
+#         # 无状态时 Siri 仍可控制开/关
+
+# ---------- 暴露给 HomeKit（Siri）----------
+# 在 HA 界面：设置 → 设备与服务 → HomeKit → 添加桥接 → 选择要暴露的实体
+# 把上面创建的「加湿器」「乌龟灯」「走廊灯」「全屋灯」等开关加入 HomeKit，
+# 然后在「家庭」App 里就能用 Siri 控制。
+
+# 若用 YAML 配置 HomeKit 桥接，示例：
+# homekit:
+#   - name: HA桥接
+#     filter:
+#       include_entities:
+#         - switch.jiashiqi
+#         - switch.wuguideng
+#         # ...

@@ -1,0 +1,25 @@
+# Open-XiaoAI：默认网络供音箱访问 4399，xiaozhi_net 供访问小智容器
+# 用法：复制到 NAS Open-XiaoAI-Server 目录为 docker-compose.yml 后 docker compose up -d
+
+services:
+  open-xiaoai-xiaozhi:
+    image: docker.1ms.run/idootop/open-xiaoai-xiaozhi:latest
+    container_name: open-xiaoai-xiaozhi
+    restart: unless-stopped
+    environment:
+      - CLI=true
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "4399:4399"
+    volumes:
+      - ./config.py:/app/config.py
+    networks:
+      - default
+      - xiaozhi_net
+
+networks:
+  default:
+    name: openxiaoai_default
+  xiaozhi_net:
+    external: true
+    name: xiaozhi_server_default

@@ -14,4 +14,4 @@ services:
       - ./music:/app/music
       - ./conf:/app/conf
     environment:
-      - XIAOMUSIC_HOSTNAME=192.168.50.86   # 极空间局域网 IP，不要带端口
+      - XIAOMUSIC_HOSTNAME=192.168.1.100   # 极空间局域网 IP，不要带端口

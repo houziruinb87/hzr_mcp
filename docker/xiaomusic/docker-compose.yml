@@ -1,0 +1,19 @@
+# XiaoMusic 极空间 / NAS 部署
+# 官方说明：https://github.com/hanxi/xiaomusic?tab=readme-ov-file#-%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%8C%87%E5%8D%97
+# 使用前请修改：
+#   1. volumes 里两个路径改成你 NAS 上的实际路径
+#   2. environment.XIAOMUSIC_HOSTNAME 改成你 NAS 的局域网 IP
+
+services:
+  xiaomusic:
+    image: hanxi/xiaomusic
+    # 国内拉取可改为: docker.hanxi.cc/hanxi/xiaomusic
+    container_name: xiaomusic
+    restart: unless-stopped
+    ports:
+      - "58090:8090"
+    volumes:
+      - /path/to/your/music:/app/music
+      - /path/to/your/xiaomusic_conf:/app/conf
+    environment:
+      - XIAOMUSIC_HOSTNAME=192.168.1.100   # 改成你极空间/NAS 的 IP，不要带端口

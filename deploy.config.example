@@ -6,10 +6,10 @@
 # REMOTE_PATH  NAS 上 mcp 工程目录（docker-compose.yml 所在目录）
 # REMOTE_PORT  可选，SSH 端口，默认 22（若用别名且已在 ssh config 里配了 Port 可省略）
 
-# REMOTE_HOST=10.5.234.92
+# REMOTE_HOST=192.168.1.10
 # REMOTE_HOST=jkj
-# REMOTE_USER=18510411307
-# REMOTE_PATH=/data_n003/data/udata/real/18510411307/docker/mcp
+# REMOTE_USER=your_nas_ssh_user
+# REMOTE_PATH=/path/to/docker/hzr_mcp
 # REMOTE_PORT=10000
 
 REMOTE_HOST=

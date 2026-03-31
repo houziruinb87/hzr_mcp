@@ -31,7 +31,7 @@
 ### 1. 确认设备型号
 
 ```bash
-miiocli device --ip 192.168.50.220 --token e6c9cc7e3041298eb0bd32ad75f11d33 info
+miiocli device --ip 192.168.1.101 --token YOUR_MIOT_DEVICE_TOKEN info
 ```
 
 确认输出中的 `model` 为 `cuco.plug.v3`（或你实际使用的型号）。
@@ -42,7 +42,7 @@ miiocli device --ip 192.168.50.220 --token e6c9cc7e3041298eb0bd32ad75f11d33 info
 下面用乌龟灯 IP/token 举例，一次查询**开关服务**和**常见定时相关**的 (siid, piid)：
 
 ```bash
-miiocli miotdevice --ip 192.168.50.220 --token e6c9cc7e3041298eb0bd32ad75f11d33 raw_command get_properties '[{"siid":2,"piid":1},{"siid":3,"piid":1},{"siid":3,"piid":2},{"siid":4,"piid":1},{"siid":4,"piid":2},{"siid":4,"piid":3},{"siid":4,"piid":4},{"siid":4,"piid":5}]'
+miiocli miotdevice --ip 192.168.1.101 --token YOUR_MIOT_DEVICE_TOKEN raw_command get_properties '[{"siid":2,"piid":1},{"siid":3,"piid":1},{"siid":3,"piid":2},{"siid":4,"piid":1},{"siid":4,"piid":2},{"siid":4,"piid":3},{"siid":4,"piid":4},{"siid":4,"piid":5}]'
 ```
 
 - **siid=2, piid=1**：开关（已验证过）。
@@ -64,7 +64,7 @@ python-miio 中 `call_action_by(siid, aiid, params)` 对应协议：
 miiocli 示例（aiid、in 需按规格或尝试填写）：
 
 ```bash
-miiocli miotdevice --ip 192.168.50.220 --token e6c9cc7e3041298eb0bd32ad75f11d33 raw_command action '{"did":"call-4-1","siid":4,"aiid":1,"in":[30]}'
+miiocli miotdevice --ip 192.168.1.101 --token YOUR_MIOT_DEVICE_TOKEN raw_command action '{"did":"call-4-1","siid":4,"aiid":1,"in":[30]}'
 ```
 
 是否支持、aiid 与 in 的语义需查该型号规格（如 [home.miot-spec.com](https://home.miot-spec.com/s/) 搜 `cuco.plug.v3`）或结合 get_properties 结果判断。
@@ -105,7 +105,7 @@ miiocli miotdevice --ip 192.168.50.220 --token e6c9cc7e3041298eb0bd32ad75f11d33 
 先确保乌龟灯为**关**，再执行下面命令（**同时设延时时长 piid=3 与延时开启开关 piid=1=True**），观察是否在设定时间后自动开灯：
 
 ```bash
-miiocli miotdevice --ip 192.168.50.220 --token e6c9cc7e3041298eb0bd32ad75f11d33 raw_command set_properties '[{"siid":4,"piid":3,"value":1},{"siid":4,"piid":1,"value":True}]'
+miiocli miotdevice --ip 192.168.1.101 --token YOUR_MIOT_DEVICE_TOKEN raw_command set_properties '[{"siid":4,"piid":3,"value":1},{"siid":4,"piid":1,"value":True}]'
 ```
 
 - **piid=3**：延时时长（若单位是分钟，1=1 分钟后开；若你确认 5=5 分钟，可改为 5 做 5 分钟测试）。
@@ -137,7 +137,7 @@ miiocli miotdevice --ip 192.168.50.220 --token e6c9cc7e3041298eb0bd32ad75f11d33 
 执行后记下输出里 siid=4 的 piid=1、2、3 的 value，并看此时 App 里「延时时间」「延时开启」开关各是什么。
 
 ```bash
-miiocli miotdevice --ip 192.168.50.220 --token e6c9cc7e3041298eb0bd32ad75f11d33 raw_command get_properties '[{"siid":4,"piid":1},{"siid":4,"piid":2},{"siid":4,"piid":3}]'
+miiocli miotdevice --ip 192.168.1.101 --token YOUR_MIOT_DEVICE_TOKEN raw_command get_properties '[{"siid":4,"piid":1},{"siid":4,"piid":2},{"siid":4,"piid":3}]'
 ```
 
 ### 步骤 2：只改延时时长（确认 piid=3 是否驱动 App 显示）
@@ -145,7 +145,7 @@ miiocli miotdevice --ip 192.168.50.220 --token e6c9cc7e3041298eb0bd32ad75f11d33 
 把 **piid=3** 设为 **2**（与当前 5 不同），看 App 里「延时时间」是否变成 2 分钟。
 
 ```bash
-miiocli miotdevice --ip 192.168.50.220 --token e6c9cc7e3041298eb0bd32ad75f11d33 raw_command set_properties '[{"siid":4,"piid":3,"value":2}]'
+miiocli miotdevice --ip 192.168.1.101 --token YOUR_MIOT_DEVICE_TOKEN raw_command set_properties '[{"siid":4,"piid":3,"value":2}]'
 ```
 
 - 若 App 变成 2 分钟 → piid=3 确认是延时时长（单位分钟）。
@@ -156,7 +156,7 @@ miiocli miotdevice --ip 192.168.50.220 --token e6c9cc7e3041298eb0bd32ad75f11d33 
 把 **piid=1** 设为 **True**，看 App 里「延时开启」开关是否打开。
 
 ```bash
-miiocli miotdevice --ip 192.168.50.220 --token e6c9cc7e3041298eb0bd32ad75f11d33 raw_command set_properties '[{"siid":4,"piid":1,"value":True}]'
+miiocli miotdevice --ip 192.168.1.101 --token YOUR_MIOT_DEVICE_TOKEN raw_command set_properties '[{"siid":4,"piid":1,"value":True}]'
 ```
 
 - 若 App 里开关打开 → piid=1 确认是延时开启开关。
@@ -319,8 +319,8 @@ def delayed_control(ip: str, token: str, action: str, delay_seconds: int):
 if __name__ == "__main__":
     # 示例：延时30秒后开启乌龟灯
     delayed_control(
-        ip="192.168.50.220",
-        token="e6c9cc7e3041298eb0bd32ad75f11d33",
+        ip="192.168.1.101",
+        token="YOUR_MIOT_DEVICE_TOKEN",
         action="开启",  # 或 "关闭"
         delay_seconds=30
     )

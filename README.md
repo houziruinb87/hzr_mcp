@@ -26,7 +26,7 @@ adb、Java 通过挂载 `office/tools` 使用；**Python 环境（含 python-mii
   NAS 本机只 source `env-host.sh`；office 容器 source `env-common.sh`；hzr_mcp 容器由 entrypoint 应用相同逻辑。  
   **上述两个脚本仅放在 NAS 的 `docker/office/tools/` 下维护，本仓库不包含。**
 - **一次性创建 tools/venv**（在 NAS 上）：  
-  `export TOOLS_DIR=/data_n003/data/udata/real/18510411307/docker/office/tools`  
+  `export TOOLS_DIR=/path/to/nas/docker/office/tools`  
   `./scripts/install-venv-to-tools.sh`  
   完成后 `tools/venv/bin` 下有 `python`、`miiocli` 等；hzr_mcp 容器若挂载该 tools，会优先使用此 venv。
 
@@ -44,7 +44,9 @@ adb、Java 通过挂载 `office/tools` 使用；**Python 环境（含 python-mii
    python hzr_mcp.py
    ```
 
-3. 配置人名与手机 IP：编辑 `name_to_ip.json`，或通过环境变量 `ANDROID_NAME_TO_IP` 传入 JSON 字符串。
+3. 配置人名与手机 IP：复制 `name_to_ip.example.json` 为 `name_to_ip.json` 后编辑，或通过环境变量 `ANDROID_NAME_TO_IP` 传入 JSON 字符串。
+
+米家设备列表见 `xiaomi/devices.json.example`：复制为 `xiaomi/devices.json` 并填写（该文件已加入 `.gitignore`）。
 
 ## 小智 MCP 接入（长连接）
 

@@ -5,14 +5,14 @@
 ## 使用
 
 ```bash
-# 使用默认设备 10.5.234.21:5555
+# 使用默认设备 192.168.1.100:5555（或通过环境变量 ADB_DEVICE_IP 覆盖）
 python ensure_connect_and_select.py
 
 # 指定 IP
-python ensure_connect_and_select.py 10.5.234.21
+python ensure_connect_and_select.py 192.168.1.100
 
 # 指定 IP 和端口
-python ensure_connect_and_select.py 10.5.234.21 5555
+python ensure_connect_and_select.py 192.168.1.100 5555
 ```
 
 环境变量：

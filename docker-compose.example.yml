@@ -26,7 +26,8 @@ services:
     volumes:
       - .:/app
       # 挂载 office 的 tools（.../docker/office/tools → 内有 android-sdk、env.sh 等）
-      - /data_n003/data/udata/real/18510411307/docker/office/tools:/workspace/tools:ro
+      # 改为你的 NAS 上 office/tools 实际路径
+      - /path/to/nas/docker/office/tools:/workspace/tools:ro
     environment:
       ADB_PATH: /workspace/tools/android-sdk/platform-tools/adb
       # 镜像内已装 OpenJDK 17；arm64 可覆盖 JAVA_HOME: /usr/lib/jvm/java-17-openjdk-arm64

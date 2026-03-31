@@ -1,0 +1,15 @@
+# 全模块 Docker 部署用：从智控台 manager-api 拉取配置
+# 部署后放在 data 目录下并重命名为 .config.yaml
+# 首次启动后：打开智控台 http://NAS的IP:8002 注册管理员，在【参数管理】复制 server.secret 填到下面 secret
+
+server:
+  ip: 0.0.0.0
+  port: 8000
+  http_port: 8003
+  vision_explain: http://192.168.1.100:8003/mcp/vision/explain
+
+manager-api:
+  url: http://xiaozhi-esp32-server-web:8002/xiaozhi
+  secret: 你的server.secret值
+
+prompt_template: agent-base-prompt.txt

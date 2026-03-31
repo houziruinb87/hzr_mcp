@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 在 NAS 的 office/tools 目录下下载并解压 Eclipse Temurin OpenJDK 17，得到 tools/jdk-17/
 # 用法（在 NAS 上）：
-#   cd /data_n003/data/udata/real/18510411307/docker/office/tools
+#   cd /path/to/nas/udata/real/YOUR_USER_ID/docker/office/tools
 #   bash install-openjdk17-to-tools.sh
 # 或指定目标目录：
 #   bash install-openjdk17-to-tools.sh /path/to/office/tools

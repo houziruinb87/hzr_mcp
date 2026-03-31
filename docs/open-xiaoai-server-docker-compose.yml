@@ -1,0 +1,14 @@
+# Open-XiaoAI Server (examples/xiaozhi) Docker Compose
+# 小智同学唤醒 → 小智云体验；端口 4399
+# 用法：在本目录下执行 docker compose up -d 启动
+# 国内拉取可改用镜像：docker.1ms.run/idootop/open-xiaoai-xiaozhi:latest
+
+services:
+  open-xiaoai-xiaozhi:
+    image: docker.1ms.run/idootop/open-xiaoai-xiaozhi:latest
+    container_name: open-xiaoai-xiaozhi
+    restart: unless-stopped
+    ports:
+      - "4399:4399"
+    volumes:
+      - ./config.py:/app/config.py

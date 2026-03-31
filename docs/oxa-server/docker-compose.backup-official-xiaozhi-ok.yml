@@ -1,0 +1,16 @@
+# 备份：当前可用编排（连接远端小智官方服务正常）
+# 恢复时复制为 docker-compose.yml 后在该目录执行 docker compose up -d
+# 按官方 README 最简 Docker 部署，使用小智官方 server
+# https://github.com/idootop/open-xiaoai/blob/main/examples/xiaozhi/README.md
+
+services:
+  open-xiaoai-xiaozhi:
+    image: docker.1ms.run/idootop/open-xiaoai-xiaozhi:latest
+    container_name: open-xiaoai-xiaozhi
+    restart: unless-stopped
+    environment:
+      - CLI=true
+    ports:
+      - "4399:4399"
+    volumes:
+      - ./config.py:/app/config.py

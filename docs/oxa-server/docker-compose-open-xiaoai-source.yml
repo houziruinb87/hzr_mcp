@@ -1,0 +1,17 @@
+# 从源码构建的 Open-XiaoAI（带 [OXA] 日志）运行用
+# 用法：先按 NAS上从源码运行Open-XiaoAI.md 在 Open-XiaoAI-Server 下构建镜像 open-xiaoai-xiaozhi:source
+# 再将本文件放到 NAS 的 docker 目录（与 Open-XiaoAI-Server 同级），命名为 docker-compose.yml 或与现有 compose 合并后：
+#   docker compose -f docker-compose-open-xiaoai-source.yml up -d
+
+services:
+  open-xiaoai-xiaozhi:
+    image: open-xiaoai-xiaozhi:source
+    container_name: open-xiaoai-xiaozhi
+    restart: unless-stopped
+    environment:
+      - CLI=true
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "4399:4399"
+    volumes:
+      - ./Open-XiaoAI-Server/examples/xiaozhi/config.py:/app/config.py

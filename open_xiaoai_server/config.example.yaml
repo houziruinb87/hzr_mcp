@@ -1,0 +1,28 @@
+# 自定义后端配置示例
+
+server:
+  host: "0.0.0.0"
+  port: 4399
+
+wake:
+  keywords:
+    - "小智"
+    - "小智同学"
+    - "爸爸最帅"
+  # 唤醒后播报的音频文件（相对 audio/ 或绝对路径），不填则用 audio/爸爸最帅收到收到.mp3
+  # reply_audio: "爸爸最帅收到收到.mp3"
+
+vad:
+  # 可选：Silero 等
+  type: "dummy"
+
+asr:
+  # 可选：funasr / 火山 / 豆包 等
+  type: "dummy"
+
+intent:
+  rules:
+    - pattern: "播放|放一首|来首"
+      intent: "play_music"
+    - pattern: "开灯|关灯|打开|关闭"
+      intent: "iot_control"

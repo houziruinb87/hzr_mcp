@@ -27,7 +27,7 @@ export default {
   callAIKeywords: ['请', '你'],
   async onMessage(engine, { text }) {
     const t = (text || '').trim();
-    const NAS_IP = '192.168.50.86';
+    const NAS_IP = '192.168.1.100';
     const BRIDGE = `http://${NAS_IP}:8765`;
 
     // 加湿器

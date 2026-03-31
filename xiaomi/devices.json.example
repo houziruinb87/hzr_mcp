@@ -1,0 +1,14 @@
+{
+  "server": "cn",
+  "home": "YOUR_MI_HOME_ID",
+  "devices": [
+    {
+      "name": "示例插座",
+      "id": "123456789",
+      "mac": "AA:BB:CC:DD:EE:01",
+      "ip": "192.168.1.101",
+      "token": "YOUR_MIOT_DEVICE_TOKEN",
+      "model": "cuco.plug.v3"
+    }
+  ]
+}

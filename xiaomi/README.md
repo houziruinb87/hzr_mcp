@@ -17,7 +17,7 @@
 ### 1. 在 NAS 上拉代码并重建镜像
 
 ```bash
-cd /data_n003/data/udata/real/18510411307/docker/mcp
+cd /path/to/nas/udata/real/YOUR_USER_ID/docker/mcp
 # 若代码在 hzr_mcp 子目录，先拉取
 cd hzr_mcp && git pull && cd ..
 docker compose build
@@ -68,9 +68,9 @@ docker exec -it hzr_mcp miiocli --version
 - **MIOT 设备**（如 cuco.plug.v3、部分第三方插座/开关，报 `undefined command` 时）：走 MIOT 协议，用 `miotdevice`，开关多为 siid=2 piid=1。**参数按 Python 字面量传，布尔用 True/False（大写）**：
   ```bash
   # 开
-  miiocli miotdevice --ip 192.168.50.220 --token <TOKEN> raw_command set_properties '[{"siid":2,"piid":1,"value":True}]'
+  miiocli miotdevice --ip 192.168.1.101 --token <TOKEN> raw_command set_properties '[{"siid":2,"piid":1,"value":True}]'
   # 关
-  miiocli miotdevice --ip 192.168.50.220 --token <TOKEN> raw_command set_properties '[{"siid":2,"piid":1,"value":False}]'
+  miiocli miotdevice --ip 192.168.1.101 --token <TOKEN> raw_command set_properties '[{"siid":2,"piid":1,"value":False}]'
   ```
   若不对，可用 `miiocli miotdevice --ip <IP> --token <TOKEN> --help` 或查 [python-miio 文档](https://python-miio.readthedocs.io/) 里 MiotDevice / get_properties 的 siid/piid 说明。
 

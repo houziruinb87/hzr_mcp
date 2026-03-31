@@ -1,0 +1,15 @@
+# Open-XiaoAI 最简部署：单网络 + 宿主机 IP 访问小智，便于音箱连上 4399
+# 用法：复制到 NAS Open-XiaoAI-Server 目录为 docker-compose.yml 后 docker compose up -d
+
+services:
+  open-xiaoai-xiaozhi:
+    image: docker.1ms.run/idootop/open-xiaoai-xiaozhi:latest
+    container_name: open-xiaoai-xiaozhi
+    restart: unless-stopped
+    environment:
+      - CLI=true
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "4399:4399"
+    volumes:
+      - ./config.py:/app/config.py

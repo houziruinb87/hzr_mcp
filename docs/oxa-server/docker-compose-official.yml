@@ -1,0 +1,12 @@
+# 完全按官方文档：只挂载 config.py，用官方小智云端（tenclass.net），不连 NAS 自建 xiaozhi
+# 用法：docker compose -f docker-compose-official.yml up -d
+
+services:
+  open-xiaoai-xiaozhi:
+    image: docker.1ms.run/idootop/open-xiaoai-xiaozhi:latest
+    container_name: open-xiaoai-xiaozhi
+    restart: unless-stopped
+    ports:
+      - "4399:4399"
+    volumes:
+      - ./config.py:/app/config.py

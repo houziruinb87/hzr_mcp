@@ -1,7 +1,7 @@
 #!/bin/bash
 # 发现全屋灯（lxzn.switch.cbcsmj）的 MIOT 属性
 
-IP="192.168.50.218"
+IP="192.168.1.102"
 TOKEN="33ca310ad290afd1ac98453c44c3faa2"
 
 echo "=== 1. 获取设备基本信息 ==="
